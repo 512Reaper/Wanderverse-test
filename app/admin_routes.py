@@ -1,6 +1,4 @@
-
-
-from app import app
+'''from app import app
 from flask import render_template, request, redirect, url_for
 from app.models import *
 
@@ -44,3 +42,4 @@ def posts_search():
         return render_template('adminPages/posts.html', posts=posts, username=username)
     else:
         return render_template('adminPages/posts.html', posts=[], username=None)
+'''

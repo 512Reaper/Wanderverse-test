@@ -1,7 +1,4 @@
-import pickle
-
 import flash
-
 from app import app
 from flask import render_template, request, redirect, url_for
 from app.utility_ai import *
@@ -9,7 +6,7 @@ from app.models import *
 from werkzeug.utils import secure_filename
 
 
-@app.route('/old')
+'''@app.route('/old')
 def hello_world():  # put application's code here
     return render_template("logo.html")
 
@@ -24,8 +21,10 @@ def home():  # put application's code here
         .all()
     )
     return render_template('creed.html', results=results)
-
-
+'''
+@app.route('/')
+def home():  # put application's code here
+    return 'hello world'
 
 
 
@@ -37,16 +36,9 @@ def create():
         if not task:
             return "Task content is required", 400
 
-        check = moderate(task)
-        if not check.Flagged:
-            # Create task and save to database
-            add = make(task)
-            db.session.add(add)
-            db.session.commit()
-            post_id = add.id
-        else:
-            db.session.add(check)
-            db.session.commit()
+        add = make(task)
+        post_id=add.id
+        if add.status=='Flagged':
             return redirect('/flagged')
 
         # Handle multiple image uploads
@@ -71,24 +63,46 @@ def create():
 
         # Commit all image records
         db.session.commit()
-
         return redirect('/posts/{post_id}'.format(post_id=post_id))
 
     return render_template('creat_page.html')
-
-
 @app.route('/flagged')
 def flagged():
     return render_template('moderate.html')
 
 
+
+
+
 @app.route('/posts/<int:post_id>', methods=['GET', 'POST'])
 def posts(post_id):
+    # Get the post from the database
     post = Post.query.get_or_404(post_id)
-    highlights = pickle.loads(post.highlight)
-    images = Images.query.filter_by(post_id=post_id).all()
-    return render_template('post.html', post=post, images=images, highlights=highlights)
 
+    # Retrieve highlights, activities, and places visited from the database
+    highlights = Highlight.query.filter_by(post_id=post_id).all()
+    activities = Activities.query.filter_by(post_id=post_id).all()
+    places_visited = PlacesVisited.query.filter_by(post_id=post_id).all()
+
+    # Retrieve images associated with the post (if any)
+    images = Images.query.filter_by(post_id=post_id).all()
+
+    # Prepare the data to pass to the template
+    highlights_text = [highlight.highlight for highlight in highlights]
+    activities_text = [activity.activity for activity in activities]
+    places_visited_text = [place.place for place in places_visited]
+
+    # Render the template with the retrieved data
+    return render_template(
+        'post.html',
+        post=post,
+        images=images,
+        highlights=highlights_text,
+        activities=activities_text,
+        places_visited=places_visited_text
+    )
+
+'''
 
 @app.route('/My_blogs', methods=['GET', 'POST'])
 def my_blogs():
@@ -244,4 +258,4 @@ def category_details(category_name):
         .all()
     )
 
-    return render_template('category_details.html', category=category_name, posts=results)
+    return render_template('category_details.html', category=category_name, posts=results)'''
